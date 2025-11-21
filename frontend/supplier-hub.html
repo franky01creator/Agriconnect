@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Hub - Browse Supplies - Agriconnect</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="marketplace-page-body">
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            <span>Agriconnect</span>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="dashboard.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="marketplace.html"><i class="fas fa-store"></i> Marketplace</a></li>
+                <li class="active"><a href="supplier-hub.html"><i class="fas fa-handshake"></i> Supplier Hub</a></li>
+                <li><a href="message.html"><i class="fas fa-envelope"></i> Messages</a></li>
+                <li><a href="knowledge.html"><i class="fas fa-book"></i> Knowledge Hub</a></li>
+            </ul>
+        </nav>
+        <div class="user-actions">
+            <a href="#"><i class="fas fa-user-circle"></i></a>
+            <a href="#" id="signOutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+        </div>
+    </div>
+
+    <div class="marketplace-container">
+        <aside class="filters-sidebar">
+            <h3 class="filters-title">Filters</h3>
+
+            <div class="filter-group">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="Search supplies...">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+
+            <div class="filter-group" id="categoryFilterGroup">
+                <h4>Category</h4>
+                <label><input type="checkbox" name="category" value="seeds"> Seeds</label>
+                <label><input type="checkbox" name="category" value="fertilizers"> Fertilizers</label>
+                <label><input type="checkbox" name="category" value="machinery"> Machinery</label>
+                <label><input type="checkbox" name="category" value="tools"> Tools & Equipment</label>
+                <label><input type="checkbox" name="category" value="pesticides"> Pesticides</label>
+            </div>
+
+            <div class="filter-group">
+                <h4>Price Range</h4>
+                <label><input type="checkbox" name="price" value="low"> Under $50</label>
+                <label><input type="checkbox" name="price" value="medium"> $50 - $200</label>
+                <label><input type="checkbox" name="price" value="high"> $200+</label>
+            </div>
+        </aside>
+
+        <main class="marketplace-content">
+            <h2 class="marketplace-heading">Browse Supplier Products</h2>
+            <p style="color: #7f8c8d; margin-bottom: 20px;">Find quality seeds, fertilizers, machinery, and farming equipment for your agricultural needs.</p>
+            
+            <div id="productGrid" class="product-grid">
+                <!-- Products will be loaded here -->
+            </div>
+        </main>
+
+        <aside class="order-summary-sidebar">
+            <div class="order-summary-card">
+                <h3>Order Summary</h3>
+                
+                <div id="cartItemsContainer">
+                    <p class="empty-cart-msg">Your cart is empty.</p>
+                </div>
+                
+                <div class="order-total">
+                    <span class="subtotal-label">Subtotal</span>
+                    <span class="subtotal-value" id="cartSubtotal">$0.00</span>
+                </div>
+
+                <div class="order-total large-total">
+                    <span>Total</span>
+                    <span id="cartTotal">$0.00</span>
+                </div>
+                <button class="place-order-btn" onclick="alert('Checkout functionality coming soon!')">Place Order</button>
+                <a href="#" class="continue-shopping">Continue Shopping</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // Global variables
+        let allProducts = [];
+        let cart = [];
+        let authToken = null;
+
+        // Generate supplier products with dummy data
+        function generateSupplierProducts() {
+            return [
+                // SEEDS
+                {
+                    _id: 'supplier-1',
+                    productName: 'Premium Organic Maize Seeds',
+                    category: 'seeds',
+                    description: 'High-yield hybrid maize seeds, drought-resistant and disease-tolerant. Perfect for small and large-scale farming. Germination rate: 95%+. Certified organic and non-GMO.',
+                    price: 12.50,
+                    unit: 'kg',
+                    quantity: 500,
+                    minOrder: 5,
+                    imageUrl: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop',
+                    supplier: { fullName: 'AgriSeed Co.' },
+                    location: 'Nairobi, Kenya',
+                    certifications: ['Organic', 'Non-GMO', 'Certified']
+                },
+                {
+                    _id: 'supplier-2',
+                    productName: 'Tomato Hybrid Seeds - F1 Variety',
+                    category: 'seeds',
+                    description: 'Premium F1 hybrid tomato seeds with excellent fruit quality. High resistance to common diseases. Produces uniform, firm fruits ideal for fresh market and processing.',
+                    price: 8.75,
+                    unit: 'packet',
+                    quantity: 200,
+                    minOrder: 10,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1IumrmdI2KCjKUQa50IhT6xpxkr-bI6Wt&sz=w1000',
+                    supplier: { fullName: 'SeedMaster Kenya' },
+                    location: 'Nakuru, Kenya',
+                    certifications: ['Certified', 'High Yield']
+                },
+                {
+                    _id: 'supplier-3',
+                    productName: 'Wheat Seeds - Premium Quality',
+                    category: 'seeds',
+                    description: 'Certified wheat seeds with high protein content. Suitable for bread making. Excellent yield potential and good disease resistance. Best for high-altitude regions.',
+                    price: 15.00,
+                    unit: 'kg',
+                    quantity: 300,
+                    minOrder: 10,
+                    imageUrl: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop',
+                    supplier: { fullName: 'GrainPro Suppliers' },
+                    location: 'Eldoret, Kenya',
+                    certifications: ['Certified', 'High Protein']
+                },
+                {
+                    _id: 'supplier-4',
+                    productName: 'Beans Seeds - Red Kidney Variety',
+                    category: 'seeds',
+                    description: 'Premium red kidney bean seeds with excellent cooking quality. High nutritional value and good market demand. Suitable for both rain-fed and irrigation farming.',
+                    price: 6.50,
+                    unit: 'kg',
+                    quantity: 400,
+                    minOrder: 5,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1f8mH8C7bArQ1dSlp4_jGnw5tQ-u0tiz1&sz=w1000',
+                    supplier: { fullName: 'Pulse Seed Distributors' },
+                    location: 'Meru, Kenya',
+                    certifications: ['Organic', 'Certified']
+                },
+                
+                // FERTILIZERS
+                {
+                    _id: 'supplier-5',
+                    productName: 'NPK 17:17:17 Compound Fertilizer',
+                    category: 'fertilizers',
+                    description: 'Balanced NPK fertilizer perfect for general crop nutrition. Contains nitrogen, phosphorus, and potassium in equal proportions. Promotes healthy growth and high yields.',
+                    price: 45.00,
+                    unit: 'bag',
+                    quantity: 150,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=18DEIsZY1pRXLc8WNnEAMYXJgblL9ZmYn&sz=w1000',
+                    supplier: { fullName: 'Fertilizer Solutions Ltd' },
+                    location: 'Nairobi, Kenya',
+                    certifications: ['Certified', 'Quality Assured']
+                },
+                {
+                    _id: 'supplier-6',
+                    productName: 'Organic Compost - 50kg Bag',
+                    category: 'fertilizers',
+                    description: 'Rich organic compost made from farm waste and animal manure. Improves soil structure, water retention, and nutrient availability. 100% organic and eco-friendly.',
+                    price: 25.00,
+                    unit: 'bag',
+                    quantity: 200,
+                    minOrder: 2,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1gIH7DI1r6LRBrls24Opz3bNU4hLZ1ma4&sz=w1000',
+                    supplier: { fullName: 'Green Earth Organics' },
+                    location: 'Kiambu, Kenya',
+                    certifications: ['Organic', 'Eco-Friendly']
+                },
+                {
+                    _id: 'supplier-7',
+                    productName: 'Urea Fertilizer - 46% Nitrogen',
+                    category: 'fertilizers',
+                    description: 'High nitrogen content fertilizer ideal for leafy vegetables and cereals. Fast-acting formula promotes vigorous vegetative growth. Best applied during early growth stages.',
+                    price: 38.00,
+                    unit: 'bag',
+                    quantity: 180,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1S6QIHf4G4I6SoomAPLouHIS3lzrzbw1v&sz=w1000',
+                    supplier: { fullName: 'AgriChem Distributors' },
+                    location: 'Mombasa, Kenya',
+                    certifications: ['Certified']
+                },
+                {
+                    _id: 'supplier-8',
+                    productName: 'DAP Fertilizer - 18:46:0',
+                    category: 'fertilizers',
+                    description: 'Diammonium Phosphate fertilizer with high phosphorus content. Essential for root development, flowering, and fruit formation. Ideal for application at planting.',
+                    price: 42.00,
+                    unit: 'bag',
+                    quantity: 160,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=18DEIsZY1pRXLc8WNnEAMYXJgblL9ZmYn&sz=w1000',
+                    supplier: { fullName: 'Phosphate Solutions' },
+                    location: 'Nakuru, Kenya',
+                    certifications: ['Certified', 'Quality Assured']
+                },
+                
+                // MACHINERY
+                {
+                    _id: 'supplier-9',
+                    productName: 'Tractor Rental - John Deere 5050D',
+                    category: 'machinery',
+                    description: 'Heavy-duty 50HP tractor available for daily rental. Includes plow attachment. Perfect for land preparation, tilling, and transportation. Well-maintained and reliable.',
+                    price: 150.00,
+                    unit: 'day',
+                    quantity: 5,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1qwc_mIaVbgRQiiINQ-4eU4vIUik_NZ9g&sz=w1000',
+                    supplier: { fullName: 'Farm Machinery Rentals' },
+                    location: 'Eldoret, Kenya',
+                    certifications: ['Insured', 'Maintained']
+                },
+                {
+                    _id: 'supplier-10',
+                    productName: 'Combine Harvester - Rental Service',
+                    category: 'machinery',
+                    description: 'Modern combine harvester for efficient grain harvesting. Cuts, threshes, and cleans in one operation. Available for seasonal rental. Experienced operator included.',
+                    price: 500.00,
+                    unit: 'day',
+                    quantity: 3,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1qwc_mIaVbgRQiiINQ-4eU4vIUik_NZ9g&sz=w1000',
+                    supplier: { fullName: 'Harvest Equipment Co.' },
+                    location: 'Narok, Kenya',
+                    certifications: ['Insured', 'Operator Included']
+                },
+                {
+                    _id: 'supplier-11',
+                    productName: 'Irrigation Pump - Diesel Powered',
+                    category: 'machinery',
+                    description: 'High-capacity diesel irrigation pump. Suitable for large-scale irrigation systems. Low maintenance and fuel-efficient. Includes delivery and installation support.',
+                    price: 850.00,
+                    unit: 'unit',
+                    quantity: 12,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1K9FkcdisW2yuE3x9bRNsYi5VtAVek6_n&sz=w1000',
+                    supplier: { fullName: 'Irrigation Solutions Ltd' },
+                    location: 'Nairobi, Kenya',
+                    certifications: ['Warranty', 'Installation Support']
+                },
+                {
+                    _id: 'supplier-12',
+                    productName: 'Tractor Trailer - 5 Ton Capacity',
+                    category: 'machinery',
+                    description: 'Heavy-duty trailer for transporting farm produce and equipment. 5-ton capacity with hydraulic tipping mechanism. Durable construction for rough terrain.',
+                    price: 1200.00,
+                    unit: 'unit',
+                    quantity: 8,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1qwc_mIaVbgRQiiINQ-4eU4vIUik_NZ9g&sz=w1000',
+                    supplier: { fullName: 'Farm Equipment Hub' },
+                    location: 'Kisumu, Kenya',
+                    certifications: ['Warranty']
+                },
+                
+                // TOOLS & EQUIPMENT
+                {
+                    _id: 'supplier-13',
+                    productName: 'Sprayer - Knapsack 20L',
+                    category: 'tools',
+                    description: 'Professional knapsack sprayer with 20-liter capacity. Adjustable nozzle for different spray patterns. Comfortable straps and durable construction. Perfect for pesticide and fertilizer application.',
+                    price: 65.00,
+                    unit: 'unit',
+                    quantity: 50,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1xCKmSlEfBBGWoO5jIRNc3TjYZSmcPdzu&sz=w1000',
+                    supplier: { fullName: 'Farm Tools Direct' },
+                    location: 'Nairobi, Kenya',
+                    certifications: ['Quality Assured']
+                },
+                {
+                    _id: 'supplier-14',
+                    productName: 'Pruning Shears - Professional Grade',
+                    category: 'tools',
+                    description: 'Heavy-duty pruning shears with ergonomic handles. Sharp, durable blades for clean cuts. Suitable for fruit trees, vines, and general garden maintenance.',
+                    price: 18.50,
+                    unit: 'pair',
+                    quantity: 100,
+                    minOrder: 2,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1lurAihFRAV701kbS8f3ugcotHw-OiH6t&sz=w1000',
+                    supplier: { fullName: 'Garden Tools Pro' },
+                    location: 'Nakuru, Kenya',
+                    certifications: ['Quality Assured']
+                },
+                {
+                    _id: 'supplier-15',
+                    productName: 'Water Storage Tank - 1000L',
+                    category: 'tools',
+                    description: 'High-quality plastic water storage tank with 1000-liter capacity. UV-resistant material. Perfect for rainwater harvesting and irrigation storage. Includes installation kit.',
+                    price: 180.00,
+                    unit: 'unit',
+                    quantity: 30,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1JffgoHcC5oPdhveM0SPGOM6Q7dysGqdy&sz=w1000',
+                    supplier: { fullName: 'Water Solutions Kenya' },
+                    location: 'Nairobi, Kenya',
+                    certifications: ['UV Resistant', 'Warranty']
+                },
+                
+                // PESTICIDES
+                {
+                    _id: 'supplier-16',
+                    productName: 'Organic Pesticide - Neem Oil Extract',
+                    category: 'pesticides',
+                    description: 'Natural neem oil-based pesticide safe for organic farming. Effective against aphids, mites, and other common pests. Environmentally friendly and safe for beneficial insects.',
+                    price: 28.00,
+                    unit: 'liter',
+                    quantity: 80,
+                    minOrder: 2,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1ctg0oZ9aE3xOjMUEIZU05FY5jiWKtdkn&sz=w1000',
+                    supplier: { fullName: 'Organic Solutions Co.' },
+                    location: 'Meru, Kenya',
+                    certifications: ['Organic', 'Eco-Friendly']
+                },
+                {
+                    _id: 'supplier-17',
+                    productName: 'Fungicide - Broad Spectrum',
+                    category: 'pesticides',
+                    description: 'Effective fungicide for controlling fungal diseases in crops. Broad-spectrum protection against powdery mildew, rust, and blight. Safe application guidelines included.',
+                    price: 35.00,
+                    unit: 'liter',
+                    quantity: 60,
+                    minOrder: 1,
+                    imageUrl: 'https://drive.google.com/thumbnail?id=1Yc0SIYFexo6FgQ2YA6u1HFthyf8YcGrB&sz=w1000',
+                    supplier: { fullName: 'Crop Protection Services' },
+                    location: 'Eldoret, Kenya',
+                    certifications: ['Certified', 'Safe Use']
+                }
+            ];
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            authToken = localStorage.getItem('authToken');
+            const userStr = localStorage.getItem('user');
+            
+            // Auth check
+            if (!authToken || !userStr) {
+                window.location.href = 'welcome.html';
+                return;
+            }
+
+            // Load cart from localStorage
+            cart = JSON.parse(localStorage.getItem('cart')) || [];
+            updateCartDisplay();
+
+            // Load products (API + dummy)
+            loadSupplierHubProducts();
+
+            // Setup filters
+            setupFilters();
+
+            // Sign out handler
+            document.getElementById('signOutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                localStorage.removeItem('cart');
+                window.location.href = 'welcome.html';
+            });
+        });
+
+        async function loadSupplierHubProducts() {
+            const productGrid = document.getElementById('productGrid');
+            productGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #2ecc71;"></i>
+                    <p style="margin-top: 10px;">Loading supplier products...</p>
+                </div>
+            `;
+
+            const dummyProducts = generateSupplierProducts();
+            let apiSupplierProducts = [];
+
+            try {
+                const response = await fetch('http://localhost:5001/api/products', {
+                    method: 'GET',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}` 
+                    }
+                });
+
+                if (response.ok) {
+                    const apiProducts = await response.json();
+                    apiSupplierProducts = apiProducts
+                        .filter(product => {
+                            const category = (product.category || '').toLowerCase();
+                            return category.includes('supplier');
+                        })
+                        .map(product => ({
+                            _id: product._id,
+                            productName: product.productName,
+                            category: normalizeSupplierCategory(product.category),
+                            description: product.description || 'Supplier product available for immediate order.',
+                            price: Number(product.price) || 0,
+                            unit: product.unit || 'unit',
+                            quantity: product.quantity || 0,
+                            minOrder: product.minOrder || 1,
+                            imageUrl: product.imageUrl || '',
+                            supplier: { fullName: (product.farmer && product.farmer.fullName) || 'Verified Supplier' },
+                            location: product.farmLocation || 'Not specified',
+                            certifications: product.certifications || []
+                        }));
+                }
+            } catch (error) {
+                console.error('Error fetching supplier products:', error);
+            }
+
+            const combinedProducts = [...apiSupplierProducts];
+            const existingNames = new Set(apiSupplierProducts.map(p => p.productName?.toLowerCase()));
+            dummyProducts.forEach(dummy => {
+                if (!existingNames.has(dummy.productName.toLowerCase())) {
+                    combinedProducts.push(dummy);
+                }
+            });
+
+            allProducts = combinedProducts;
+            renderProducts(allProducts);
+        }
+
+        function normalizeSupplierCategory(category = '') {
+            const normalized = category.toLowerCase();
+            if (normalized.includes('seed')) return 'seeds';
+            if (normalized.includes('fert')) return 'fertilizers';
+            if (normalized.includes('mach')) return 'machinery';
+            if (normalized.includes('tool')) return 'tools';
+            if (normalized.includes('pest')) return 'pesticides';
+            return normalized || 'supplies';
+        }
+
+        // Render products
+        function renderProducts(products) {
+            const productGrid = document.getElementById('productGrid');
+            productGrid.innerHTML = '';
+
+            if (products.length === 0) {
+                productGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #7f8c8d;">No products found matching your criteria.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200/e8f5e9/27ae60?text=Supplier+Product';
+                const description = product.description || 'Quality supplier product for your farming needs.';
+                const shortDescription = description.length > 120 ? description.substring(0, 120) + '...' : description;
+                
+                const certs = product.certifications && product.certifications.length > 0 
+                    ? product.certifications.map(c => 
+                        `<span style="display: inline-block; background: #e8f5e9; color: #27ae60; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; margin-right: 4px; margin-top: 4px;">${c}</span>`
+                    ).join('')
+                    : '';
+
+                const card = document.createElement('div');
+                card.className = 'card product-card';
+                card.style.cssText = 'display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;';
+                card.onmouseenter = function() { 
+                    this.style.transform = 'translateY(-4px)'; 
+                    this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; 
+                };
+                card.onmouseleave = function() { 
+                    this.style.transform = 'translateY(0)'; 
+                    this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'; 
+                };
+                
+                card.innerHTML = `
+                    <div class="product-img-container" style="height: 200px; overflow: hidden; position: relative; background: #f0f0f0;">
+                        <img src="${imageUrl}" alt="${product.productName}" 
+                             style="width: 100%; height: 100%; object-fit: cover;" 
+                             onerror="this.src='https://via.placeholder.com/300x200/e8f5e9/27ae60?text=Supplier+Product'">
+                        ${certs ? `<div style="position: absolute; top: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 4px; max-width: 60%;">${certs}</div>` : ''}
+                    </div>
+                    <div class="product-details" style="padding: 16px; flex-grow: 1; display: flex; flex-direction: column;">
+                        <h4 style="margin: 0 0 6px 0; color: #2c3e50; font-size: 1.1em; font-weight: 600;">${product.productName}</h4>
+                        <p style="color: #7f8c8d; font-size: 0.85em; margin: 0 0 8px 0; text-transform: capitalize;">${product.category}</p>
+                        <p style="font-size: 0.85em; color: #555; margin: 0 0 12px 0; line-height: 1.4; flex-grow: 1;">${shortDescription}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                            <div>
+                                <span style="font-weight: bold; color: #27ae60; font-size: 1.1em;">$${product.price.toFixed(2)}</span>
+                                <span style="color: #95a5a6; font-size: 0.9em;"> / ${product.unit}</span>
+                            </div>
+                            <span style="font-size: 0.85em; color: #95a5a6;">
+                                <i class="fas fa-box"></i> ${product.quantity} available
+                            </span>
+                        </div>
+                        <p style="font-size: 0.8em; color: #7f8c8d; margin: 0 0 12px 0;">
+                            <i class="fas fa-user-tag"></i> ${product.supplier?.fullName || 'Verified Supplier'}
+                            ${product.location ? `<br><i class="fas fa-map-marker-alt"></i> ${product.location}` : ''}
+                        </p>
+                        <button onclick="addToCart('${product._id}')" class="quick-action-button" 
+                                style="width: 100%; background-color: #2ecc71; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background-color 0.2s;"
+                                onmouseover="this.style.backgroundColor='#27ae60'" 
+                                onmouseout="this.style.backgroundColor='#2ecc71'">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </div>
+                `;
+                productGrid.appendChild(card);
+            });
+        }
+
+        // Cart functions
+        function addToCart(productId) {
+            const product = allProducts.find(p => p._id === productId);
+            if (!product) return;
+
+            const existingItem = cart.find(item => item._id === productId);
+
+            if (existingItem) {
+                existingItem.cartQuantity += 1;
+            } else {
+                cart.push({ ...product, cartQuantity: 1 });
+            }
+
+            updateCartDisplay();
+            saveCart();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item._id !== productId);
+            updateCartDisplay();
+            saveCart();
+        }
+
+        function updateCartDisplay() {
+            const container = document.getElementById('cartItemsContainer');
+            const subtotalEl = document.getElementById('cartSubtotal');
+            const totalEl = document.getElementById('cartTotal');
+            
+            container.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="empty-cart-msg" style="color: #95a5a6; text-align: center;">Your cart is empty.</p>';
+                subtotalEl.textContent = '$0.00';
+                totalEl.textContent = '$0.00';
+                return;
+            }
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.cartQuantity;
+                total += itemTotal;
+
+                const itemRow = document.createElement('div');
+                itemRow.style.cssText = 'display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9em; border-bottom: 1px solid #eee; padding-bottom: 5px;';
+                itemRow.innerHTML = `
+                    <div>
+                        <div><strong>${item.productName}</strong></div>
+                        <div style="color: #7f8c8d;">${item.cartQuantity} x $${item.price}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div>$${itemTotal.toFixed(2)}</div>
+                        <i class="fas fa-trash-alt" style="color: #e74c3c; cursor: pointer; font-size: 0.8em;" onclick="removeFromCart('${item._id}')"></i>
+                    </div>
+                `;
+                container.appendChild(itemRow);
+            });
+
+            subtotalEl.textContent = `$${total.toFixed(2)}`;
+            totalEl.textContent = `$${total.toFixed(2)}`;
+        }
+
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // Filter functions
+        function setupFilters() {
+            const searchInput = document.getElementById('searchInput');
+            const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
+            const priceCheckboxes = document.querySelectorAll('input[name="price"]');
+
+            const filterData = () => {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                const selectedCategories = Array.from(categoryCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+                const selectedPrices = Array.from(priceCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+                const filtered = allProducts.filter(product => {
+                    const searchableText = [
+                        product.productName || '',
+                        product.description || '',
+                        product.supplier?.fullName || '',
+                        product.location || ''
+                    ].join(' ').toLowerCase();
+                    
+                    const matchesSearch = searchTerm === '' || searchableText.includes(searchTerm);
+                    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
+                    
+                    let matchesPrice = true;
+                    if (selectedPrices.length > 0) {
+                        matchesPrice = selectedPrices.some(priceRange => {
+                            if (priceRange === 'low') return product.price < 50;
+                            if (priceRange === 'medium') return product.price >= 50 && product.price <= 200;
+                            if (priceRange === 'high') return product.price > 200;
+                            return false;
+                        });
+                    }
+                    
+                    return matchesSearch && matchesCategory && matchesPrice;
+                });
+
+                renderProducts(filtered);
+            };
+
+            searchInput.addEventListener('input', filterData);
+            categoryCheckboxes.forEach(cb => cb.addEventListener('change', filterData));
+            priceCheckboxes.forEach(cb => cb.addEventListener('change', filterData));
+        }
+
+        // Make functions globally accessible
+        window.addToCart = addToCart;
+        window.removeFromCart = removeFromCart;
+    </script>
+</body>
+</html>
+

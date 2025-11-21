@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agriconnect Farmer Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="farmer-hub-body">
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            <span>Agriconnect</span>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li class="active"><a href="dashboard.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="marketplace.html"><i class="fas fa-store"></i> Marketplace</a></li>
+                <li><a href="supplier-hub.html"><i class="fas fa-handshake"></i> Suppliers</a></li>
+                <li><a href="message.html"><i class="fas fa-envelope"></i> Messages</a></li>
+                <li><a href="knowledge.html"><i class="fas fa-book"></i> Knowledge Hub</a></li>
+            </ul>
+        </nav>
+        <div class="user-actions">
+            <a href="#"><i class="fas fa-user-circle"></i></a>
+            <a href="#" id="signOutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="success-banner" style="display:none;"> 
+            <i class="fas fa-check-circle"></i>
+            <span>Account created successfully!</span>
+            <i class="fas fa-times close-btn"></i>
+        </div>
+
+        <h2 class="welcome-message" id="welcomeMessage">Welcome back...</h2>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon metric-icon-blue"><i class="fas fa-box"></i></div>
+                <div class="metric-info">
+                    <p class="metric-label">Products Listed</p>
+                    <p class="metric-value" id="productsCount">0</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon metric-icon-green"><i class="fas fa-hourglass-half"></i></div>
+                <div class="metric-info">
+                    <p class="metric-label">Pending Orders</p>
+                    <p class="metric-value" id="pendingOrdersCount">0</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon metric-icon-orange"><i class="fas fa-dollar-sign"></i></div>
+                <div class="metric-info">
+                    <p class="metric-label">Total Sales</p>
+                    <p class="metric-value" id="totalSales">$0.00</p>
+                </div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon metric-icon-star"><i class="fas fa-star"></i></div>
+                <div class="metric-info">
+                    <p class="metric-label">Farm Rating</p>
+                    <p class="metric-value" id="farmRating">4.8/5</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-sections-grid">
+            <div class="card quick-actions-card">
+                <h3 class="section-title">Quick Actions</h3>
+                <button class="quick-action-button primary-action" onclick="document.getElementById('product-listing-form-section').scrollIntoView({ behavior: 'smooth' });">
+                    <i class="fas fa-plus-circle"></i> List New Product
+                </button>
+                <button class="quick-action-button" id="viewListingsBtn"><i class="fas fa-list-alt"></i> View My Listings</button>
+                <button class="quick-action-button" id="manageOrdersBtn"><i class="fas fa-truck"></i> Manage Orders</button>
+            </div>
+
+            <div class="card product-performance-card">
+                <h3 class="section-title">Product Performance</h3>
+                <div class="chart-placeholder">
+                    <img src="https://via.placeholder.com/400x150/f0f0f0/999999?text=Product+Views+Chart" alt="Product Views Chart">
+                </div>
+            </div>
+        </div>
+        
+        <div id="myListingsSection" class="card" style="display: none;">
+            <h3 class="section-title">My Product Listings</h3>
+            <div id="listingsContainer" class="listings-grid">
+                </div>
+            <div id="listingsLoader" style="display: none; text-align: center; padding: 20px;">
+                <i class="fas fa-spinner fa-spin"></i> Loading...
+            </div>
+        </div>
+
+        <div id="product-listing-form-section" class="card product-listing-card">
+            <h2 class="form-section-title">List Your Product</h2>
+            <form id="productForm">
+                <div class="form-grid">
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label for="product-name">Product Name</label>
+                            <input type="text" id="product-name" name="product-name" placeholder="e.g., Organic Red Apples" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select id="category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="fresh-produce">Fresh Produce</option>
+                                <option value="grains-pulses">Grains & Pulses</option>
+                                <option value="vegetables">Vegetables</option>
+                                <option value="fruits">Fruits</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea id="description" name="description" placeholder="Tell us about your product..." rows="4"></textarea>
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="price">Price per Unit</label>
+                            <input type="number" id="price" name="price" step="0.01" placeholder="$0.00" required>
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="unit">Unit</label>
+                            <select id="unit" name="unit" required>
+                                <option value="kg">kg</option>
+                                <option value="bushel">bushel</option>
+                                <option value="piece">piece</option>
+                            </select>
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="quantity">Available Quantity</label>
+                            <input type="number" id="quantity" name="quantity" placeholder="100" required>
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="min-order">Min. Order Quantity</label>
+                            <input type="number" id="min-order" name="min-order" placeholder="1" required>
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="harvest-date">Harvest Date</label>
+                            <input type="date" id="harvest-date" name="harvest-date">
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="expiry-date">Expiry Date</label>
+                            <input type="date" id="expiry-date" name="expiry-date">
+                        </div>
+                    </div>
+
+                    <div class="form-column">
+                        <div class="form-group">
+                            <label>Certifications</label>
+                            <label style="display: block; margin-bottom: 8px;"><input type="checkbox" name="cert-organic" value="Organic"> Organic</label>
+                            <label style="display: block; margin-bottom: 8px;"><input type="checkbox" name="cert-fairtrade" value="Fair Trade"> Fair Trade</label>
+                            <label style="display: block; margin-bottom: 8px;"><input type="checkbox" name="cert-local" value="Local"> Local</label>
+                            <label style="display: block; margin-bottom: 8px;"><input type="checkbox" name="cert-gap" value="GAP Certified"> GAP Certified</label>
+                        </div>
+                        <div class="form-group">
+                            <label for="farm-location">Farm Location</label>
+                            <input type="text" id="farm-location" name="farm-location" placeholder="Search for your farm location" autocomplete="off">
+                            <input type="hidden" id="farm-lat" name="farm-lat">
+                            <input type="hidden" id="farm-lng" name="farm-lng">
+                            <small>Start typing to search for your farm and select it from the suggestions.</small>
+                            <div id="farmMap" style="margin-top: 10px; height: 250px; border: 1px solid #dcdcdc; border-radius: 8px;"></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-image-url">Product Image URL</label>
+                            <input type="text" id="product-image-url" name="product-image-url" placeholder="https://example.com/image.jpg">
+                            <small>Enter a URL for your product image, or upload an image file below.</small>
+                        </div>
+                        <div class="form-group file-upload-group">
+                            <label>Product Images (File Upload)</label>
+                            <div class="drop-zone">
+                                <input type="file" id="product-images" name="product-images[]" multiple accept="image/*">
+                                <p><i class="fas fa-camera"></i> Click or drag files to upload</p>
+                                <div id="image-previews" class="image-previews">
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="form-message" style="margin-top: 15px; display: none;"></div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary">Save Draft</button>
+                    <button type="submit" class="btn-primary">Publish Product</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="growing-together-banner">
+            <h3>Growing Together</h3>
+            <p>Agriconnect brings farmers, buyers, and suppliers together in one platform. Join thousands of agricultural professionals building a sustainable future.</p>
+            <div class="banner-buttons">
+                <button>Fair Prices</button>
+                <button>Direct Trading</button>
+                <button>Expert Knowledge</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // === FROM FUNCTIONALITY CODE: AUTH & USER CHECK ===
+            const token = localStorage.getItem('authToken');
+            const userString = localStorage.getItem('user');
+            
+            // 1. CHECK FOR LOGIN
+            if (!token || !userString) {
+                // If no token or user, redirect to welcome/landing page
+                window.location.href = 'welcome.html';
+                return; // Stop running the script
+            }
+            
+            // Parse the user object
+            const user = JSON.parse(userString);
+
+            // 2. CHECK USER ROLE - Redirect suppliers to their own dashboard
+            if (user && user.role && user.role.toLowerCase() === 'supplier') {
+                window.location.href = 'supplier.html';
+                return;
+            }
+
+            // 2. PERSONALIZE THE PAGE
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            if (user && user.fullName) {
+                welcomeMessage.textContent = `Welcome back, ${user.fullName}`;
+            } else if (user && user.firstName) { // Added a fallback
+                 welcomeMessage.textContent = `Welcome back, ${user.firstName}`;
+            }
+
+            // === FROM FUNCTIONALITY CODE: SIGN OUT ===
+            const signOutBtn = document.getElementById('signOutBtn');
+            if (signOutBtn) {
+                signOutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    // Clear all user data including cart
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('cart'); // Clear shopping cart
+                    window.location.href = 'welcome.html';
+                });
+            }
+
+            // === FROM FUNCTIONALITY CODE: PRODUCT FORM SUBMIT ===
+            const productForm = document.getElementById('productForm');
+            const formMessage = document.getElementById('form-message');
+
+            if (productForm) {
+                productForm.addEventListener('submit', async (e) => {
+                    e.preventDefault(); // Stop page reload
+
+                    // Gather certifications
+                    const certifications = [];
+                    const certCheckboxes = productForm.querySelectorAll('input[type="checkbox"][name^="cert-"]:checked');
+                    certCheckboxes.forEach(checkbox => {
+                        certifications.push(checkbox.value);
+                    });
+
+                    // Get image URL (prioritize URL input over file upload for now)
+                    const imageUrl = document.getElementById('product-image-url').value.trim() || '';
+
+                    // Gather all form data
+                    const productData = {
+                        productName: document.getElementById('product-name').value.trim(),
+                        category: document.getElementById('category').value,
+                        description: document.getElementById('description').value.trim(),
+                        price: parseFloat(document.getElementById('price').value),
+                        unit: document.getElementById('unit').value,
+                        quantity: parseInt(document.getElementById('quantity').value),
+                        minOrder: parseInt(document.getElementById('min-order').value),
+                        harvestDate: document.getElementById('harvest-date').value || null,
+                        expiryDate: document.getElementById('expiry-date').value || null,
+                        farmLocation: document.getElementById('farm-location').value.trim(),
+                        imageUrl: imageUrl,
+                        certifications: certifications
+                    };
+
+                    // Validation
+                    if (!productData.productName || !productData.category || !productData.description || 
+                        !productData.price || !productData.unit || !productData.quantity || !productData.farmLocation) {
+                        formMessage.textContent = 'Please fill in all required fields.';
+                        formMessage.style.color = 'red';
+                        formMessage.style.display = 'block';
+                        return;
+                    }
+
+                    if (productData.price <= 0) {
+                        formMessage.textContent = 'Price must be greater than 0.';
+                        formMessage.style.color = 'red';
+                        formMessage.style.display = 'block';
+                        return;
+                    }
+
+                    if (productData.quantity <= 0) {
+                        formMessage.textContent = 'Quantity must be greater than 0.';
+                        formMessage.style.color = 'red';
+                        formMessage.style.display = 'block';
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('http://localhost:5001/api/products', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}` 
+                            },
+                            body: JSON.stringify(productData)
+                        });
+
+                        if (response.ok) {
+                            const newProduct = await response.json();
+                            formMessage.textContent = 'Product listed successfully!';
+                            formMessage.style.color = 'green';
+                            formMessage.style.display = 'block';
+                            
+                            // Reset form
+                            productForm.reset();
+                            document.getElementById('product-image-url').value = '';
+                            
+                            // Clear image previews
+                            const imagePreviews = document.getElementById('image-previews');
+                            if(imagePreviews) imagePreviews.innerHTML = '';
+                            
+                            // Clear map
+                            const farmLatInput = document.getElementById('farm-lat');
+                            const farmLngInput = document.getElementById('farm-lng');
+                            if (farmLatInput) farmLatInput.value = '';
+                            if (farmLngInput) farmLngInput.value = '';
+                            
+                            // Update metrics
+                            updateMetrics();
+                            
+                            // Refresh the listings if they are visible
+                            if (document.getElementById('myListingsSection').style.display === 'block') {
+                                window.fetchMyListings(); 
+                            }
+                            
+                            // Scroll to top to show success message
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            
+                            // Hide success message after 5 seconds
+                            setTimeout(() => {
+                                formMessage.style.display = 'none';
+                            }, 5000);
+                        } else {
+                            const err = await response.json();
+                            throw new Error(err.message || 'Failed to list product');
+                        }
+                    } catch (error) {
+                        formMessage.textContent = `Error: ${error.message}`;
+                        formMessage.style.color = 'red';
+                        formMessage.style.display = 'block';
+                    }
+                });
+            }
+
+            // === FROM FUNCTIONALITY CODE: VIEW MY LISTINGS ===
+            const viewListingsBtn = document.getElementById('viewListingsBtn');
+            const myListingsSection = document.getElementById('myListingsSection');
+            const listingsContainer = document.getElementById('listingsContainer');
+            const listingsLoader = document.getElementById('listingsLoader');
+
+            // Make fetchMyListings globally accessible
+            window.fetchMyListings = async () => {
+                if (!myListingsSection || !listingsLoader || !listingsContainer) return;
+                
+                myListingsSection.style.display = 'block';
+                listingsLoader.style.display = 'block';
+                listingsContainer.innerHTML = ''; // Clear old listings
+
+                try {
+                    const response = await fetch('http://localhost:5001/api/products/my-listings', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.message || 'Failed to fetch listings');
+                    }
+
+                    const products = await response.json();
+                    listingsLoader.style.display = 'none';
+
+                    if (products.length === 0) {
+                        listingsContainer.innerHTML = '<p>You have not listed any products yet.</p>';
+                        return;
+                    }
+
+                    // Loop through products and create HTML
+                    products.forEach(product => {
+                        const productCard = document.createElement('div');
+                        productCard.className = 'product-card';
+                        productCard.style.cssText = 'border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; position: relative;';
+                        
+                        const imageUrl = product.imageUrl || 'https://via.placeholder.com/200x150/e8f5e9/27ae60?text=No+Image';
+                        const description = product.description || 'No description available.';
+                        const shortDescription = description.length > 100 ? description.substring(0, 100) + '...' : description;
+                        const certs = product.certifications && product.certifications.length > 0 
+                            ? product.certifications.map(c => `<span style="display: inline-block; background: #e8f5e9; color: #27ae60; padding: 2px 8px; border-radius: 12px; font-size: 0.75em; margin-right: 4px; margin-top: 4px;">${c}</span>`).join('')
+                            : '';
+                        
+                        productCard.innerHTML = `
+                            <div style="display: flex; gap: 15px;">
+                                <div style="flex-shrink: 0;">
+                                    <img src="${imageUrl}" alt="${product.productName}" 
+                                         style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;"
+                                         onerror="this.src='https://via.placeholder.com/120x120/e8f5e9/27ae60?text=No+Image'">
+                                </div>
+                                <div style="flex-grow: 1;">
+                                    <h4 style="margin: 0 0 8px 0; color: #2c3e50;">${product.productName}</h4>
+                                    <p style="color: #7f8c8d; font-size: 0.9em; margin: 0 0 8px 0;">${shortDescription}</p>
+                                    <div style="margin-bottom: 8px;">
+                                        ${certs}
+                                    </div>
+                                    <div style="display: flex; gap: 20px; margin-bottom: 8px; font-size: 0.9em;">
+                                        <span><strong>Price:</strong> $${product.price.toFixed(2)} / ${product.unit}</span>
+                                        <span><strong>Stock:</strong> ${product.quantity} ${product.unit}</span>
+                                        <span><strong>Min Order:</strong> ${product.minOrder} ${product.unit}</span>
+                                    </div>
+                                    ${product.farmLocation ? `<p style="font-size: 0.85em; color: #95a5a6; margin: 0;"><i class="fas fa-map-marker-alt"></i> ${product.farmLocation}</p>` : ''}
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <button onclick="editProduct('${product._id}')" 
+                                            style="padding: 6px 12px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85em;">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button onclick="deleteProduct('${product._id}')" 
+                                            style="padding: 6px 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85em;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        listingsContainer.appendChild(productCard);
+                    });
+
+                } catch (error) {
+                    listingsLoader.style.display = 'none';
+                    listingsContainer.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+                }
+            };
+            
+            if (viewListingsBtn) {
+                viewListingsBtn.addEventListener('click', () => {
+                    window.fetchMyListings();
+                    document.getElementById('myListingsSection').scrollIntoView({ behavior: 'smooth' });
+                });
+            }
+
+            // Manage Orders button
+            const manageOrdersBtn = document.getElementById('manageOrdersBtn');
+            if (manageOrdersBtn) {
+                manageOrdersBtn.addEventListener('click', () => {
+                    alert('Order management system coming soon! This will show all orders for your products.');
+                });
+            }
+
+            // === FROM ORIGINAL HTML: SUCCESS BANNER CLOSE ===
+            const successBanner = document.querySelector('.success-banner');
+            const closeBtn = successBanner ? successBanner.querySelector('.close-btn') : null;
+
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    successBanner.style.display = 'none';
+                });
+            }
+
+            // === FROM ORIGINAL HTML: IMAGE UPLOAD PREVIEW ===
+            const fileInput = document.getElementById('product-images');
+            const imagePreviews = document.getElementById('image-previews');
+
+            if (fileInput && imagePreviews) {
+                fileInput.addEventListener('change', function() {
+                    imagePreviews.innerHTML = ''; // Clear previous previews
+                    if (this.files) {
+                        Array.from(this.files).forEach(file => {
+                            if (file.type.startsWith('image/')) {
+                                const reader = new FileReader();
+                                reader.onload = function(e) {
+                                    const imgContainer = document.createElement('div');
+                                    imgContainer.classList.add('image-preview-item');
+                                    imgContainer.innerHTML = `<img src="${e.target.result}" alt="Product Image">`;
+                                    imagePreviews.appendChild(imgContainer);
+                                };
+                                reader.readAsDataURL(file);
+                            }
+                        });
+                    }
+                });
+            }
+            
+            // === FROM ORIGINAL HTML: SHOW BANNER ON SIGNUP SUCCESS ===
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('signup_success') === 'true') {
+                if (successBanner) {
+                    successBanner.style.display = 'flex';
+                }
+            }
+
+            // Load metrics on page load
+            updateMetrics();
+        });
+
+        // Function to update metrics from database
+        async function updateMetrics() {
+            const token = localStorage.getItem('authToken');
+            if (!token) return;
+
+            try {
+                const response = await fetch('http://localhost:5001/api/products/my-listings', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const products = await response.json();
+                    
+                    // Update products count
+                    document.getElementById('productsCount').textContent = products.length;
+                    
+                    // Calculate estimated total sales (placeholder - would need order data)
+                    const estimatedSales = products.reduce((sum, product) => {
+                        // Estimate 10% of stock sold at listed price
+                        return sum + (product.price * product.quantity * 0.1);
+                    }, 0);
+                    document.getElementById('totalSales').textContent = `$${estimatedSales.toFixed(2)}`;
+                    
+                    // Pending orders (placeholder - would need order API)
+                    document.getElementById('pendingOrdersCount').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error updating metrics:', error);
+            }
+        }
+
+        // Function to delete product
+        async function deleteProduct(productId) {
+            if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+                return;
+            }
+
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                alert('You must be logged in to delete products.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5001/api/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    // Refresh listings
+                    if (window.fetchMyListings) {
+                        window.fetchMyListings();
+                    }
+                    // Update metrics
+                    updateMetrics();
+                    
+                    // Show success message
+                    const formMessage = document.getElementById('form-message');
+                    formMessage.textContent = 'Product deleted successfully!';
+                    formMessage.style.color = 'green';
+                    formMessage.style.display = 'block';
+                    setTimeout(() => {
+                        formMessage.style.display = 'none';
+                    }, 3000);
+                } else {
+                    const err = await response.json();
+                    throw new Error(err.message || 'Failed to delete product');
+                }
+            } catch (error) {
+                alert('Error deleting product: ' + error.message);
+            }
+        }
+
+        // Function to edit product (placeholder - could be expanded)
+        function editProduct(productId) {
+            alert('Edit functionality coming soon! For now, you can delete and recreate the product.');
+            // TODO: Implement edit modal or redirect to edit form
+        }
+    </script>
+    <script>
+        window.initFarmLocationMap = function() {
+            const farmLocationInput = document.getElementById('farm-location');
+            const farmLatInput = document.getElementById('farm-lat');
+            const farmLngInput = document.getElementById('farm-lng');
+            const farmMapElement = document.getElementById('farmMap');
+
+            if (!farmLocationInput || !farmMapElement || !(window.google && google.maps && google.maps.places)) {
+                return;
+            }
+
+            const defaultLocation = { lat: 0.0236, lng: 37.9062 }; // Center on Kenya by default
+
+            const map = new google.maps.Map(farmMapElement, {
+                center: defaultLocation,
+                zoom: 6,
+                mapTypeControl: false,
+                streetViewControl: false,
+            });
+
+            const marker = new google.maps.Marker({
+                map,
+                position: defaultLocation,
+                draggable: false,
+            });
+
+            const autocomplete = new google.maps.places.Autocomplete(farmLocationInput, {
+                fields: ['formatted_address', 'geometry', 'name'],
+                types: ['geocode'],
+            });
+
+            autocomplete.addListener('place_changed', () => {
+                const place = autocomplete.getPlace();
+                if (!place.geometry || !place.geometry.location) {
+                    return;
+                }
+
+                const location = place.geometry.location;
+                map.setCenter(location);
+                map.setZoom(13);
+                marker.setPosition(location);
+
+                farmLocationInput.value = place.formatted_address || place.name || farmLocationInput.value;
+                farmLatInput.value = location.lat();
+                farmLngInput.value = location.lng();
+            });
+
+            const existingLat = parseFloat(farmLatInput.value);
+            const existingLng = parseFloat(farmLngInput.value);
+            if (!Number.isNaN(existingLat) && !Number.isNaN(existingLng)) {
+                const existingPosition = { lat: existingLat, lng: existingLng };
+                map.setCenter(existingPosition);
+                map.setZoom(13);
+                marker.setPosition(existingPosition);
+            }
+        };
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAh_Bud-EhZWzHpBqTm-7edW7KMpnNaDKw&libraries=places&callback=initFarmLocationMap"></script>
+</body>
+</html>

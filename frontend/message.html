@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Hub - Agriconnect</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="message-hub-page-body">
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            <span>Agriconnect</span>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="welcome.html"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="marketplace.html"><i class="fas fa-store"></i> Marketplace</a></li>
+                <li class="active"><a href="message.html"><i class="fas fa-envelope"></i> Messages</a></li>
+                <li><a href="supplier-hub.html"><i class="fas fa-handshake"></i> Supplier</a></li>
+                <li><a href="knowledge.html"><i class="fas fa-book"></i> Knowledge Hub</a></li>
+            </ul>
+        </nav>
+        <div class="user-actions">
+            <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+        </div>
+    </div>
+
+    <div class="message-hub-container">
+        <div class="conversations-sidebar card">
+            <div class="sidebar-header">
+                <h3>Messages</h3>
+                <button class="btn-new-message" title="Start New Conversation"><i class="fas fa-plus"></i></button>
+            </div>
+            <div class="conversation-search">
+                <input type="text" placeholder="Search conversations..." class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+            <div class="conversation-list" id="conversationList">
+                <p style="padding: 20px; color: #777;">Loading conversations...</p>
+            </div>
+        </div>
+
+        <div class="chat-window card">
+            <div class="chat-header" id="chatHeader" style="visibility: hidden;">
+                <div class="chat-contact-info">
+                    <div class="contact-avatar"><img src="https://via.placeholder.com/40" alt="Avatar"></div>
+                    <span class="chat-contact-name" id="activeContactName">Select a conversation</span>
+                </div>
+            </div>
+
+            <div class="message-display-area" id="messageDisplayArea">
+                <div style="text-align: center; margin-top: 50px; color: #999;">
+                    Select a conversation to view messages
+                </div>
+            </div>
+
+            <div class="message-input-area" id="inputArea" style="display: none;">
+                <button class="btn-attach"><i class="fas fa-paperclip"></i></button>
+                <input type="text" id="msgInput" placeholder="Type your message..." class="message-input">
+                <button class="btn-send" id="sendBtn"><i class="fas fa-paper-plane"></i> Send</button>
+            </div>
+        </div>
+    </div>
+    <div id="newChatModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div class="modal-content" style="background-color: #fff; margin: 10% auto; padding: 20px; border-radius: 8px; width: 400px; max-width: 90%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3>Start New Conversation</h3>
+            <span id="closeModalBtn" style="cursor: pointer; font-size: 24px;">&times;</span>
+        </div>
+        
+        <input type="text" id="userSearchInput" placeholder="Type a user's name..." style="width: 100%; padding: 10px; box-sizing: border-box; margin-bottom: 10px;">
+        
+        <div id="searchResults" style="max-height: 200px; overflow-y: auto; border: 1px solid #eee;">
+            </div>
+    </div>
+</div>
+
+    <script>
+    let currentConversationId = null;
+    let currentRecipientId = null;
+    let currentUser = null;
+    let token = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Check authentication
+        token = localStorage.getItem('authToken');
+        const userStr = localStorage.getItem('user');
+        
+        if (!token || !userStr) {
+            window.location.href = 'welcome.html';
+            return;
+        }
+
+        currentUser = JSON.parse(userStr);
+        
+        // Logout button
+        document.getElementById('logoutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            // Clear all user data including cart
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('cart'); // Clear shopping cart
+            window.location.href = 'welcome.html';
+        });
+
+        // Load conversations
+        loadConversations();
+
+        // Event Listeners
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('msgInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        // --- MODAL LOGIC ---
+        const modal = document.getElementById('newChatModal');
+        const btnNewMsg = document.querySelector('.btn-new-message');
+        const closeBtn = document.getElementById('closeModalBtn');
+        const searchInput = document.getElementById('userSearchInput');
+
+        // Open Modal
+        btnNewMsg.onclick = () => {
+            modal.style.display = "block";
+            searchInput.value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            searchInput.focus();
+        }
+
+        // Close Modal
+        closeBtn.onclick = () => modal.style.display = "none";
+        window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; }
+
+        // Search Users (Debounced slightly for performance)
+        let timeout = null;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(timeout);
+            const query = e.target.value.trim();
+            if (query.length > 0) {
+                timeout = setTimeout(() => searchUsers(query), 300);
+            } else {
+                document.getElementById('searchResults').innerHTML = '';
+            }
+        });
+    });
+
+    // 1. SEARCH USERS FUNCTION
+    async function searchUsers(query) {
+        const resultsDiv = document.getElementById('searchResults');
+        if (!query || query.trim() === '') { 
+            resultsDiv.innerHTML = ''; 
+            return; 
+        }
+
+        try {
+            const res = await fetch(`http://localhost:5001/api/users/search?query=${encodeURIComponent(query)}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to search users');
+            }
+
+            const users = await res.json();
+
+            resultsDiv.innerHTML = '';
+            if (users.length === 0) {
+                resultsDiv.innerHTML = '<p style="padding:10px; color: #777; text-align: center;">No users found.</p>';
+                return;
+            }
+
+            users.forEach(user => {
+                const div = document.createElement('div');
+                div.style.cssText = "padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; transition: background-color 0.2s;";
+                div.onmouseover = () => div.style.backgroundColor = '#f5f5f5';
+                div.onmouseout = () => div.style.backgroundColor = 'transparent';
+                
+                const roleLabel = user.role ? user.role.charAt(0).toUpperCase() + user.role.slice(1) : 'User';
+                
+                div.innerHTML = `
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #2ecc71; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; margin-right: 12px; flex-shrink: 0;">
+                        ${user.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <strong style="display: block; color: #2c3e50;">${user.fullName || 'Unknown User'}</strong>
+                        <small style="color: #7f8c8d;">${roleLabel}</small>
+                    </div>
+                `;
+                // When clicking a user from search
+                div.onclick = () => startNewChat(user);
+                resultsDiv.appendChild(div);
+            });
+        } catch (err) {
+            console.error("Search error", err);
+            resultsDiv.innerHTML = '<p style="padding:10px; color: #e74c3c; text-align: center;">Error searching users. Please try again.</p>';
+        }
+    }
+
+    // 2. START NEW CHAT UI SETUP
+    function startNewChat(user) {
+        // Close modal
+        document.getElementById('newChatModal').style.display = "none";
+        
+        // Set global variables
+        currentRecipientId = user._id;
+        currentConversationId = null; // NULL because it might not exist in DB yet
+
+        // Update Chat Header
+        document.getElementById('chatHeader').style.visibility = 'visible';
+        document.getElementById('activeContactName').textContent = user.fullName || 'Unknown User';
+        document.getElementById('inputArea').style.display = 'flex';
+
+        // Clear message area
+        const display = document.getElementById('messageDisplayArea');
+        display.innerHTML = '<div style="text-align:center; padding:40px; color:#888;"><i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.3;"></i><p>This is the start of your conversation with <strong>' + (user.fullName || 'this user') + '</strong>.<br>Say hello!</p></div>';
+        
+        // Focus on input
+        document.getElementById('msgInput').focus();
+    }
+
+    // 3. LOAD EXISTING CONVERSATIONS
+    async function loadConversations() {
+        const list = document.getElementById('conversationList');
+        
+        try {
+            const res = await fetch('http://localhost:5001/api/chat/conversations', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to load conversations');
+            }
+
+            const conversations = await res.json();
+            list.innerHTML = '';
+
+            if (conversations.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 40px; color: #777;"><i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.3;"></i><p>No conversations yet.<br>Start a new conversation to begin messaging!</p></div>';
+                return;
+            }
+
+            conversations.forEach(conv => {
+                // Find the other participant (not the current user)
+                const otherUser = conv.participants.find(p => {
+                    const userId = typeof p === 'object' ? p._id.toString() : p.toString();
+                    return userId !== currentUser._id;
+                });
+
+                if (!otherUser) return; // Skip if no other user found
+
+                const userName = otherUser.fullName || 'Unknown User';
+                const lastMsg = conv.lastMessage || 'No messages yet';
+                const truncatedMsg = lastMsg.length > 50 ? lastMsg.substring(0, 50) + '...' : lastMsg;
+                
+                const div = document.createElement('div');
+                div.className = 'conversation-item';
+                div.style.cursor = 'pointer';
+                div.onclick = () => openExistingChat(conv._id, otherUser);
+                
+                div.innerHTML = `
+                    <div class="contact-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: #2ecc71; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; margin-right: 12px; flex-shrink: 0;">
+                        ${userName.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="conversation-details" style="flex-grow: 1; min-width: 0;">
+                        <div class="contact-name-time" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span class="contact-name" style="font-weight: 600; color: #2c3e50;">${userName}</span>
+                        </div>
+                        <p class="last-message" style="color: #7f8c8d; font-size: 0.9em; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${truncatedMsg}</p>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        } catch (err) { 
+            console.error('Error loading conversations:', err);
+            list.innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;"><p>Error loading conversations. Please refresh the page.</p></div>';
+        }
+    }
+
+    // 4. OPEN EXISTING CHAT
+    async function openExistingChat(convId, user) {
+        currentConversationId = convId;
+        currentRecipientId = user._id || user;
+        
+        document.getElementById('chatHeader').style.visibility = 'visible';
+        document.getElementById('activeContactName').textContent = user.fullName || 'Unknown User';
+        document.getElementById('inputArea').style.display = 'flex';
+        
+        loadMessages(convId);
+        
+        // Focus on input
+        document.getElementById('msgInput').focus();
+    }
+
+    // 5. LOAD MESSAGES
+    async function loadMessages(convId) {
+        const display = document.getElementById('messageDisplayArea');
+        display.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fas fa-spinner fa-spin"></i> Loading messages...</div>';
+        
+        try {
+            const res = await fetch(`http://localhost:5001/api/chat/messages/${convId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!res.ok) {
+                throw new Error('Failed to load messages');
+            }
+
+            const messages = await res.json();
+            display.innerHTML = '';
+
+            if (messages.length === 0) {
+                display.innerHTML = '<div style="text-align: center; padding: 40px; color: #888;"><i class="fas fa-comments" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.3;"></i><p>No messages yet. Start the conversation!</p></div>';
+                return;
+            }
+
+            messages.forEach(msg => {
+                const senderId = typeof msg.sender === 'object' ? msg.sender._id.toString() : msg.sender.toString();
+                const isMine = senderId === currentUser._id;
+                
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${isMine ? 'sent' : 'received'}`;
+                bubble.style.cssText = `
+                    margin: 8px 0;
+                    padding: 10px 14px;
+                    border-radius: 18px;
+                    max-width: 70%;
+                    word-wrap: break-word;
+                    ${isMine ? 'background: #2ecc71; color: white; margin-left: auto;' : 'background: #ecf0f1; color: #2c3e50;'}
+                `;
+                
+                const time = new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                bubble.innerHTML = `
+                    <div class="message-content" style="margin: 0;">
+                        <p style="margin: 0; line-height: 1.4;">${escapeHtml(msg.content)}</p>
+                        <small style="opacity: 0.7; font-size: 0.75em; display: block; margin-top: 4px;">${time}</small>
+                    </div>
+                `;
+                display.appendChild(bubble);
+            });
+            
+            // Scroll to bottom
+            display.scrollTop = display.scrollHeight;
+        } catch (err) { 
+            console.error('Error loading messages:', err);
+            display.innerHTML = '<div style="text-align: center; padding: 20px; color: #e74c3c;"><p>Error loading messages. Please try again.</p></div>';
+        }
+    }
+
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // 6. SEND MESSAGE (Updated logic)
+    async function sendMessage() {
+        const input = document.getElementById('msgInput');
+        const content = input.value.trim();
+        
+        // Must have content and a recipient
+        if (!content || !currentRecipientId) {
+            if (!currentRecipientId) {
+                alert('Please select a conversation or start a new chat first.');
+            }
+            return;
+        }
+
+        // Disable input while sending
+        input.disabled = true;
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.disabled = true;
+
+        try {
+            const payload = {
+                recipientId: currentRecipientId,
+                content: content
+            };
+            // Only attach ID if it exists. If null, backend creates new conv.
+            if (currentConversationId) payload.conversationId = currentConversationId;
+
+            const res = await fetch('http://localhost:5001/api/chat/message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'Failed to send message');
+            }
+
+            const data = await res.json();
+            input.value = '';
+            
+            // IMPORTANT: If this was a new chat, the backend just created an ID. Save it!
+            if (!currentConversationId && data.conversationId) {
+                currentConversationId = data.conversationId;
+            }
+
+            // Reload messages to get the full message with timestamp
+            if (currentConversationId) {
+                await loadMessages(currentConversationId);
+            } else if (data.conversationId) {
+                await loadMessages(data.conversationId);
+            }
+
+            // Refresh sidebar to show new conversation at top
+            loadConversations();
+            
+        } catch (err) { 
+            console.error("Send failed", err);
+            alert('Failed to send message: ' + err.message);
+        } finally {
+            // Re-enable input
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# --- Dependencies (Ignores them in BOTH client and server) ---
+node_modules/
+# --- Environment Variables (CRITICAL SECURITY) ---
+.env
+# --- IDE Settings ---
+.vscode/

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agriconnect Marketplace</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="marketplace-page-body">
+    <div class="header">
+        <div class="logo">
+            <i class="fas fa-leaf"></i>
+            <span>Agriconnect</span>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li><a href="welcome.html"><i class="fas fa-home"></i> Home</a></li>
+                <li class="active"><a href="marketplace.html"><i class="fas fa-store"></i> Marketplace</a></li>
+                <li><a href="supplier-hub.html"><i class="fas fa-handshake"></i> Suppliers</a></li>
+                <li><a href="message.html"><i class="fas fa-envelope"></i> Messages</a></li>
+                <li><a href="knowledge.html"><i class="fas fa-book"></i> Knowledge Hub</a></li>
+            </ul>
+        </nav>
+        <div class="user-actions">
+            <a href="#"><i class="fas fa-user-circle"></i></a>
+            <a href="#" id="signOutBtn"><i class="fas fa-sign-out-alt"></i> Sign Out</a>
+        </div>
+    </div>
+
+    <div class="marketplace-container">
+        <aside class="filters-sidebar">
+            <h3 class="filters-title">Filters</h3>
+
+            <div class="filter-group">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="Search products...">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+
+            <div class="filter-group" id="categoryFilterGroup">
+                <h4>Category</h4>
+                <label><input type="checkbox" name="category" value="fresh-produce"> Fresh Produce</label>
+                <label><input type="checkbox" name="category" value="grains-pulses"> Grains & Pulses</label>
+                <label><input type="checkbox" name="category" value="vegetables"> Vegetables</label>
+                <label><input type="checkbox" name="category" value="fruits"> Fruits</label>
+                <label><input type="checkbox" name="category" value="dairy"> Dairy</label>
+            </div>
+        </aside>
+
+        <main class="marketplace-content">
+            <h2 class="marketplace-heading">Browse All Products</h2>
+            
+            <div id="productGrid" class="product-grid">
+                <div id="loader" style="text-align: center; grid-column: 1 / -1; padding: 40px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #2ecc71;"></i>
+                    <p style="margin-top: 10px;">Loading Fresh Products...</p>
+                </div>
+            </div>
+        </main>
+
+        <aside class="order-summary-sidebar">
+            <div class="order-summary-card">
+                <h3>Order Summary</h3>
+                
+                <div id="cartItemsContainer">
+                    <p class="empty-cart-msg">Your cart is empty.</p>
+                </div>
+                
+                <div class="order-total">
+                    <span class="subtotal-label">Subtotal</span>
+                    <span class="subtotal-value" id="cartSubtotal">$0.00</span>
+                </div>
+
+                <div class="order-total large-total">
+                    <span>Total</span>
+                    <span id="cartTotal">$0.00</span>
+                </div>
+                <button class="place-order-btn" onclick="alert('Checkout functionality coming soon!')">Place Order</button>
+                <a href="#" class="continue-shopping">Continue Shopping</a>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // --- GLOBAL VARIABLES ---
+        let allProducts = [];
+        let cart = [];
+
+        // --- GENERATE DUMMY PRODUCTS ---
+        function generateDummyProducts() {
+            const dummyProducts = [
+                {
+                    _id: 'dummy-1',
+                    productName: 'Organic Tomatoes',
+                    category: 'vegetables',
+                    description: 'Fresh, vine-ripened organic tomatoes grown using sustainable farming practices. Picked at peak ripeness for maximum flavor and nutrition. Perfect for salads, sauces, and fresh eating.',
+                    price: 3.50,
+                    unit: 'kg',
+                    quantity: 150,
+                    minOrder: 2,
+                    imageUrl: 'https://images.unsplash.com/photo-1546470427-e26264be0b91?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Green Valley Farm' },
+                    certifications: ['Organic', 'Local'],
+                    harvestDate: new Date().toISOString().split('T')[0],
+                    farmLocation: 'Nakuru County, Kenya'
+                },
+                {
+                    _id: 'dummy-2',
+                    productName: 'Fresh Sweet Corn',
+                    category: 'vegetables',
+                    description: 'Premium sweet corn harvested fresh daily. Non-GMO variety with exceptional sweetness and crisp texture. Ideal for grilling, boiling, or fresh consumption.',
+                    price: 2.75,
+                    unit: 'piece',
+                    quantity: 200,
+                    minOrder: 6,
+                    imageUrl: 'https://images.unsplash.com/photo-1464454709131-ffd692591ee5?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Sunshine Fields' },
+                    certifications: ['Local', 'GAP Certified'],
+                    harvestDate: new Date().toISOString().split('T')[0],
+                    farmLocation: 'Uasin Gishu County, Kenya'
+                },
+                {
+                    _id: 'dummy-3',
+                    productName: 'Farm Fresh Eggs',
+                    category: 'dairy',
+                    description: 'Free-range chicken eggs from happy, healthy hens. Rich in protein and omega-3 fatty acids. Collected daily and carefully handled to ensure freshness.',
+                    price: 4.00,
+                    unit: 'dozen',
+                    quantity: 80,
+                    minOrder: 1,
+                    imageUrl: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Happy Hen Farm' },
+                    certifications: ['Organic', 'Free Range'],
+                    harvestDate: new Date().toISOString().split('T')[0],
+                    farmLocation: 'Kiambu County, Kenya'
+                },
+                {
+                    _id: 'dummy-4',
+                    productName: 'Organic Carrots',
+                    category: 'vegetables',
+                    description: 'Crisp, sweet organic carrots grown in rich, well-drained soil. High in beta-carotene and vitamin A. Perfect for snacking, juicing, or cooking.',
+                    price: 2.25,
+                    unit: 'kg',
+                    quantity: 180,
+                    minOrder: 3,
+                    imageUrl: 'https://images.unsplash.com/photo-1445282768818-728615cc910a?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Roots & Shoots Farm' },
+                    certifications: ['Organic', 'Local'],
+                    harvestDate: new Date().toISOString().split('T')[0],
+                    farmLocation: 'Meru County, Kenya'
+                },
+                {
+                    _id: 'dummy-5',
+                    productName: 'Fresh Mangoes',
+                    category: 'fruits',
+                    description: 'Ripe, juicy mangoes from our orchard. Sweet and aromatic with firm, golden flesh. Rich in vitamins A and C. Perfect for eating fresh or making smoothies.',
+                    price: 4.50,
+                    unit: 'kg',
+                    quantity: 120,
+                    minOrder: 2,
+                    imageUrl: 'https://images.unsplash.com/photo-1605027990121-c73661ea8ca1?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Tropical Paradise Farm' },
+                    certifications: ['Organic', 'Fair Trade'],
+                    harvestDate: new Date().toISOString().split('T')[0],
+                    farmLocation: 'Machakos County, Kenya'
+                },
+                {
+                    _id: 'dummy-6',
+                    productName: 'Premium Wheat Grain',
+                    category: 'grains-pulses',
+                    description: 'High-quality wheat grain suitable for milling and baking. Grown using traditional methods with modern quality control. Excellent protein content and gluten quality.',
+                    price: 1.80,
+                    unit: 'kg',
+                    quantity: 500,
+                    minOrder: 10,
+                    imageUrl: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Golden Grain Farm' },
+                    certifications: ['GAP Certified', 'Local'],
+                    harvestDate: new Date(Date.now() - 30*24*60*60*1000).toISOString().split('T')[0],
+                    farmLocation: 'Narok County, Kenya'
+                },
+                {
+                    _id: 'dummy-7',
+                    productName: 'Fresh Avocados',
+                    category: 'fruits',
+                    description: 'Creamy, buttery avocados from mature trees. Rich in healthy fats and fiber. Perfect ripeness for immediate consumption or can be stored for later use.',
+                    price: 5.00,
+                    unit: 'kg',
+                    quantity: 90,
+                    minOrder: 2,
+                    imageUrl: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Avocado Grove Farm' },
+                    certifications: ['Organic', 'Local'],
+                    harvestDate: new Date().toISOString().split('T')[0],
+                    farmLocation: 'Murang\'a County, Kenya'
+                },
+                {
+                    _id: 'dummy-8',
+                    productName: 'Green Beans',
+                    category: 'vegetables',
+                    description: 'Tender, crisp green beans picked at optimal maturity. Stringless variety with excellent flavor. Great for steaming, stir-frying, or canning.',
+                    price: 3.00,
+                    unit: 'kg',
+                    quantity: 140,
+                    minOrder: 2,
+                    imageUrl: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Veggie Patch Farm' },
+                    certifications: ['Local', 'GAP Certified'],
+                    harvestDate: new Date().toISOString().split('T')[0],
+                    farmLocation: 'Nyeri County, Kenya'
+                },
+                {
+                    _id: 'dummy-9',
+                    productName: 'Fresh Bananas',
+                    category: 'fruits',
+                    description: 'Sweet, naturally ripened bananas from our plantation. Rich in potassium and natural sugars. Perfect for snacking, baking, or smoothies.',
+                    price: 2.00,
+                    unit: 'kg',
+                    quantity: 250,
+                    minOrder: 3,
+                    imageUrl: 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Banana Plantation Co.' },
+                    certifications: ['Fair Trade', 'Local'],
+                    harvestDate: new Date().toISOString().split('T')[0],
+                    farmLocation: 'Kisii County, Kenya'
+                },
+                {
+                    _id: 'dummy-10',
+                    productName: 'Organic Red Beans',
+                    category: 'grains-pulses',
+                    description: 'Premium red kidney beans, organically grown and carefully dried. High in protein and fiber. Excellent for soups, stews, and traditional dishes.',
+                    price: 3.25,
+                    unit: 'kg',
+                    quantity: 200,
+                    minOrder: 2,
+                    imageUrl: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=400&h=300&fit=crop',
+                    farmer: { fullName: 'Pulse Producers Farm' },
+                    certifications: ['Organic', 'Fair Trade'],
+                    harvestDate: new Date(Date.now() - 60*24*60*60*1000).toISOString().split('T')[0],
+                    farmLocation: 'Bungoma County, Kenya'
+                }
+            ];
+            return dummyProducts;
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('authToken');
+            
+            // 1. Auth Check
+            if (!token) {
+                window.location.href = 'welcome.html';
+                return;
+            }
+
+            // 2. Load Cart from Memory
+            cart = JSON.parse(localStorage.getItem('cart')) || [];
+            updateCartDisplay();
+
+            // 3. Fetch Data (with fallback to dummy products)
+            fetchProducts(token);
+
+            // 4. Setup Filter Listeners
+            setupFilters();
+        });
+
+        // --- SIGNOUT LOGIC ---
+        document.getElementById('signOutBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            // Clear all user data including cart
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('cart'); // Clear shopping cart
+            window.location.href = 'welcome.html';
+        });
+
+        // --- CORE FUNCTION: FETCH PRODUCTS ---
+        async function fetchProducts(token) {
+            const loader = document.getElementById('loader');
+            const productGrid = document.getElementById('productGrid');
+
+            // Always start with dummy products
+            let apiProducts = [];
+            
+            try {
+                // Try to fetch from backend API
+                const response = await fetch('http://localhost:5001/api/products', {
+                    method: 'GET',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    }
+                });
+
+                if (response.ok) {
+                    apiProducts = await response.json() || [];
+                }
+            } catch (error) {
+                console.error('API fetch failed, continuing with dummy products:', error);
+                // Continue with dummy products even if API fails
+            }
+
+            // Always merge dummy products with API products
+            // Dummy products will always be visible for demonstration
+            const dummyProducts = generateDummyProducts();
+            
+            // Combine API products with dummy products
+            // Remove duplicates based on product name (in case API has same products)
+            const combinedProducts = [...apiProducts];
+            const apiProductNames = new Set(apiProducts.map(p => p.productName?.toLowerCase()));
+            
+            // Add dummy products that don't already exist in API products
+            dummyProducts.forEach(dummy => {
+                if (!apiProductNames.has(dummy.productName?.toLowerCase())) {
+                    combinedProducts.push(dummy);
+                }
+            });
+
+            allProducts = combinedProducts;
+            loader.style.display = 'none';
+            renderProducts(allProducts);
+        }
+
+        // --- CORE FUNCTION: RENDER GRID ---
+        function renderProducts(products) {
+            const productGrid = document.getElementById('productGrid');
+            productGrid.innerHTML = ''; // Clear grid (removes loader)
+
+            if (products.length === 0) {
+                productGrid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #7f8c8d;">No products found matching your criteria.</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                // Fallback if no image is provided or if farmer name is missing
+                const imageUrl = product.imageUrl || 'https://via.placeholder.com/300x200/e8f5e9/27ae60?text=Fresh+Produce';
+                
+                // Handle case where farmer data might not be fully populated
+                const farmerName = product.farmer && product.farmer.fullName ? product.farmer.fullName : 
+                                  (product.farmer && product.farmer.firstName) ? product.farmer.firstName : 'Verified Farmer';
+                
+                // Format category for display
+                const categoryDisplay = product.category ? product.category.split('-').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ') : 'Uncategorized';
+                
+                // Display certifications if available
+                const certifications = product.certifications && product.certifications.length > 0 
+                    ? product.certifications 
+                    : [];
+                const certBadges = certifications.map(cert => 
+                    `<span style="display: inline-block; background: #e8f5e9; color: #27ae60; padding: 2px 8px; border-radius: 12px; font-size: 0.7em; margin-right: 4px; margin-top: 4px;">${cert}</span>`
+                ).join('');
+                
+                // Truncate description if too long
+                const description = product.description || 'Fresh, high-quality agricultural product from our farm.';
+                const shortDescription = description.length > 100 ? description.substring(0, 100) + '...' : description;
+
+                const card = document.createElement('div');
+                card.className = 'card product-card';
+                card.style.cssText = 'display: flex; flex-direction: column; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s;';
+                card.onmouseenter = function() { this.style.transform = 'translateY(-4px)'; this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; };
+                card.onmouseleave = function() { this.style.transform = 'translateY(0)'; this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)'; };
+                
+                card.innerHTML = `
+                    <div class="product-img-container" style="height: 180px; overflow: hidden; position: relative; background: #f0f0f0;">
+                        <img src="${imageUrl}" alt="${product.productName}" style="width: 100%; height: 100%; object-fit: cover;" 
+                             onerror="this.src='https://via.placeholder.com/300x200/e8f5e9/27ae60?text=Fresh+Produce'">
+                        ${certBadges ? `<div style="position: absolute; top: 8px; right: 8px; display: flex; flex-wrap: wrap; gap: 4px; max-width: 60%;">${certBadges}</div>` : ''}
+                    </div>
+                    <div class="product-details" style="padding: 16px; flex-grow: 1; display: flex; flex-direction: column;">
+                        <h4 style="margin: 0 0 6px 0; color: #2c3e50; font-size: 1.1em; font-weight: 600;">${product.productName}</h4>
+                        <p style="color: #7f8c8d; font-size: 0.85em; margin: 0 0 8px 0; text-transform: capitalize;">${categoryDisplay}</p>
+                        <p style="font-size: 0.85em; color: #555; margin: 0 0 12px 0; line-height: 1.4; flex-grow: 1;">${shortDescription}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+                            <div>
+                                <span style="font-weight: bold; color: #27ae60; font-size: 1.1em;">$${product.price.toFixed(2)}</span>
+                                <span style="color: #95a5a6; font-size: 0.9em;"> / ${product.unit}</span>
+                            </div>
+                            <span style="font-size: 0.85em; color: #95a5a6;">
+                                <i class="fas fa-box"></i> ${product.quantity} ${product.unit} available
+                            </span>
+                        </div>
+                        <p style="font-size: 0.8em; color: #7f8c8d; margin: 0 0 12px 0;">
+                            <i class="fas fa-user-tag"></i> ${farmerName}
+                            ${product.farmLocation ? `<br><i class="fas fa-map-marker-alt"></i> ${product.farmLocation}` : ''}
+                        </p>
+                        <button onclick="addToCart('${product._id}')" class="quick-action-button" 
+                                style="width: 100%; background-color: #2ecc71; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 500; transition: background-color 0.2s;"
+                                onmouseover="this.style.backgroundColor='#27ae60'" 
+                                onmouseout="this.style.backgroundColor='#2ecc71'">
+                            <i class="fas fa-cart-plus"></i> Add to Cart
+                        </button>
+                    </div>
+                `;
+                productGrid.appendChild(card);
+            });
+        }
+
+        // --- CART LOGIC ---
+        function addToCart(productId) {
+            const product = allProducts.find(p => p._id === productId);
+            if (!product) return;
+
+            const existingItem = cart.find(item => item._id === productId);
+
+            if (existingItem) {
+                existingItem.cartQuantity += 1;
+            } else {
+                // Add new item with cartQuantity property
+                cart.push({ ...product, cartQuantity: 1 });
+            }
+
+            updateCartDisplay();
+            saveCart();
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item._id !== productId);
+            updateCartDisplay();
+            saveCart();
+        }
+
+        function updateCartDisplay() {
+            const container = document.getElementById('cartItemsContainer');
+            const subtotalEl = document.getElementById('cartSubtotal');
+            const totalEl = document.getElementById('cartTotal');
+            
+            container.innerHTML = '';
+            let total = 0;
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="empty-cart-msg" style="color: #95a5a6; text-align: center;">Your cart is empty.</p>';
+                subtotalEl.textContent = '$0.00';
+                totalEl.textContent = '$0.00';
+                return;
+            }
+
+            cart.forEach(item => {
+                const itemTotal = item.price * item.cartQuantity;
+                total += itemTotal;
+
+                const itemRow = document.createElement('div');
+                itemRow.style.cssText = 'display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9em; border-bottom: 1px solid #eee; padding-bottom: 5px;';
+                itemRow.innerHTML = `
+                    <div>
+                        <div><strong>${item.productName}</strong></div>
+                        <div style="color: #7f8c8d;">${item.cartQuantity} x $${item.price}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div>$${itemTotal.toFixed(2)}</div>
+                        <i class="fas fa-trash-alt" style="color: #e74c3c; cursor: pointer; font-size: 0.8em;" onclick="removeFromCart('${item._id}')"></i>
+                    </div>
+                `;
+                container.appendChild(itemRow);
+            });
+
+            subtotalEl.textContent = `$${total.toFixed(2)}`;
+            totalEl.textContent = `$${total.toFixed(2)}`;
+        }
+
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        // --- FILTER LOGIC ---
+        function setupFilters() {
+            const searchInput = document.getElementById('searchInput');
+            const categoryCheckboxes = document.querySelectorAll('input[name="category"]');
+
+            const filterData = () => {
+                const searchTerm = searchInput.value.toLowerCase().trim();
+                const selectedCategories = Array.from(categoryCheckboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+
+                const filtered = allProducts.filter(product => {
+                    // Enhanced search: check product name, description, and farmer name
+                    const searchableText = [
+                        product.productName || '',
+                        product.description || '',
+                        (product.farmer && product.farmer.fullName) ? product.farmer.fullName : '',
+                        product.farmLocation || ''
+                    ].join(' ').toLowerCase();
+                    
+                    const matchesSearch = searchTerm === '' || searchableText.includes(searchTerm);
+                    const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
+                    return matchesSearch && matchesCategory;
+                });
+
+                renderProducts(filtered);
+            };
+
+            searchInput.addEventListener('input', filterData);
+            categoryCheckboxes.forEach(cb => cb.addEventListener('change', filterData));
+        }
+    </script>
+</body>
+</html>
