@@ -251,7 +251,7 @@
             emptyListings.style.display = 'none';
 
             try {
-                const response = await fetch('http://localhost:5001/api/products/my-listings', {
+                const response = await fetch('https://agriconnect-lhhe.onrender.com/api/products/my-listings', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${authToken}`
@@ -342,7 +342,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:5001/api/products/${productId}`, {
+                const response = await fetch(`https://agriconnect-lhhe.onrender.com/api/products/${productId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${authToken}`
@@ -403,7 +403,7 @@
                 formMessage.style.display = 'none';
 
                 try {
-                    const response = await fetch('http://localhost:5001/api/products', {
+                    const response = await fetch('https://agriconnect-lhhe.onrender.com/api/products', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

@@ -154,7 +154,7 @@
         }
 
         try {
-            const res = await fetch(`http://localhost:5001/api/users/search?query=${encodeURIComponent(query)}`, {
+            const res = await fetch(`https://agriconnect-lhhe.onrender.com/api/users/search?query=${encodeURIComponent(query)}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -298,7 +298,7 @@
         display.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;"><i class="fas fa-spinner fa-spin"></i> Loading messages...</div>';
         
         try {
-            const res = await fetch(`http://localhost:5001/api/chat/messages/${convId}`, {
+            const res = await fetch(`https://agriconnect-lhhe.onrender.com/api/chat/messages/${convId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -381,7 +381,7 @@
             // Only attach ID if it exists. If null, backend creates new conv.
             if (currentConversationId) payload.conversationId = currentConversationId;
 
-            const res = await fetch('http://localhost:5001/api/chat/message', {
+            const res = await fetch('https://agriconnect-lhhe.onrender.com', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                 body: JSON.stringify(payload)
