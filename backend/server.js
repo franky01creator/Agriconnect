@@ -14,7 +14,7 @@ import passport from "./config/passport.js";
 import userRoutes from './routes/userRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-console.log(process.env.MONGO_URI);
+
 
 const app = express();
 app.use(cors({
@@ -59,9 +59,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-app.listen (5001,() => {
- console.log("Server Started on http://localhost:5001");
- console.log("Frontend available at http://localhost:5001");
+const PORT = process.env.PORT || 5001; // Use Render's port, or 5001 locally
+
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Frontend available at http://localhost:${PORT}`);
 });
 
 export default app;
