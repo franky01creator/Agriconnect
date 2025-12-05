@@ -1,21 +1,42 @@
+import dotenv from "dotenv";
+dotenv.config(); // Load environment variables FIRST
+
 import express from "express";
 import routes  from "./routes/routes.js"
 import { connectDB } from "./config/db.js";
-import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import session from "express-session";
+import passport from "./config/passport.js";
 
 // IMPORT ROUTES
 import userRoutes from './routes/userRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-
-dotenv.config();
 console.log(process.env.MONGO_URI);
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5001',
+    credentials: true
+}));
+
+// Session configuration (needed for OAuth flow)
+app.use(session({
+    secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production', // Use secure cookies in production
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
+
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +63,8 @@ app.listen (5001,() => {
  console.log("Server Started on http://localhost:5001");
  console.log("Frontend available at http://localhost:5001");
 });
+
+export default app;
 
 
 

@@ -1,0 +1,31 @@
+config:
+  # 1. MATCH THE PORT from server.js (5001)
+  target: "http://localhost:5001"
+  
+  phases:
+    - duration: 30
+      arrivalRate: 5
+      name: "Low Traffic"
+
+  # Phase 2: High Load (20 users/sec) - This is the stress test
+    - duration: 60
+      arrivalRate: 20
+      name: "High Traffic Spike"    
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+
+scenarios:
+  - name: "Farmer Login Flow"
+    flow:
+      # 3. VERIFY THIS USER EXISTS IN DB BEFORE RUNNING
+      - post:
+          url: "/api/login" 
+          json:
+            email: "j1@gmail.com" 
+            password: "1234"
+          capture:
+            # Capture the token to prove login worked
+            - json: "$.token"
+              as: "authToken"

@@ -77,10 +77,42 @@
                     <span>Total</span>
                     <span id="cartTotal">$0.00</span>
                 </div>
-                <button class="place-order-btn" onclick="alert('Checkout functionality coming soon!')">Place Order</button>
+                <button class="place-order-btn" id="placeOrderBtn">Place Order</button>
                 <a href="#" class="continue-shopping">Continue Shopping</a>
             </div>
         </aside>
+    </div>
+
+    <div id="checkoutModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 420px;">
+            <span class="close-modal" id="closeCheckoutBtn">&times;</span>
+            <h3>Checkout</h3>
+            <p style="color:#666; font-size:14px;margin-top:0;">Enter delivery details to complete your order.</p>
+            <form id="checkoutForm">
+                <div class="form-group">
+                    <label for="customerName">Full Name</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="customerPhone">Phone Number</label>
+                    <input type="tel" id="customerPhone" required>
+                </div>
+                <div class="form-group">
+                    <label for="deliveryAddress">Delivery Address</label>
+                    <textarea id="deliveryAddress" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="paymentMethod">Payment Method</label>
+                    <select id="paymentMethod" required>
+                        <option value="">Select method</option>
+                        <option value="mobile-money">Mobile Money</option>
+                        <option value="bank-transfer">Bank Transfer</option>
+                        <option value="cod">Cash on Delivery</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%;">Confirm Order</button>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -276,6 +308,58 @@
             window.location.href = 'welcome.html';
         });
 
+        // --- CHECKOUT LOGIC ---
+        const checkoutModal = document.getElementById('checkoutModal');
+        const closeCheckoutBtn = document.getElementById('closeCheckoutBtn');
+        const checkoutForm = document.getElementById('checkoutForm');
+        const placeOrderBtn = document.getElementById('placeOrderBtn');
+
+        if (checkoutModal && checkoutForm && closeCheckoutBtn && placeOrderBtn) {
+            placeOrderBtn.addEventListener('click', () => {
+                if (cart.length === 0) {
+                    alert('Your cart is empty. Add some products first.');
+                    return;
+                }
+                checkoutModal.style.display = 'flex';
+            });
+
+            closeCheckoutBtn.addEventListener('click', () => {
+                checkoutModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === checkoutModal) {
+                    checkoutModal.style.display = 'none';
+                }
+            });
+
+            checkoutForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const orderDetails = {
+                    customerName: document.getElementById('customerName').value.trim(),
+                    customerPhone: document.getElementById('customerPhone').value.trim(),
+                    deliveryAddress: document.getElementById('deliveryAddress').value.trim(),
+                    paymentMethod: document.getElementById('paymentMethod').value,
+                    items: cart,
+                    total: cart.reduce((sum, item) => sum + item.price * item.cartQuantity, 0)
+                };
+
+                if (!orderDetails.customerName || !orderDetails.customerPhone || !orderDetails.deliveryAddress || !orderDetails.paymentMethod) {
+                    alert('Please complete all checkout fields.');
+                    return;
+                }
+
+                alert(`Thank you, ${orderDetails.customerName}! Your order for $${orderDetails.total.toFixed(2)} has been received. We'll contact you at ${orderDetails.customerPhone}.`);
+
+                cart = [];
+                saveCart();
+                updateCartDisplay();
+
+                checkoutForm.reset();
+                checkoutModal.style.display = 'none';
+            });
+        }
+
         // --- CORE FUNCTION: FETCH PRODUCTS ---
         async function fetchProducts(token) {
             const loader = document.getElementById('loader');
@@ -303,7 +387,7 @@
             }
 
             // Always merge dummy products with API products
-            // Dummy products will always be visible for demonstration
+           
             const dummyProducts = generateDummyProducts();
             
             // Combine API products with dummy products

@@ -82,10 +82,37 @@
                     <span>Total</span>
                     <span id="cartTotal">$0.00</span>
                 </div>
-                <button class="place-order-btn" onclick="alert('Checkout functionality coming soon!')">Place Order</button>
+                <button class="place-order-btn" id="supplierPlaceOrderBtn">Place Order</button>
                 <a href="#" class="continue-shopping">Continue Shopping</a>
             </div>
         </aside>
+    </div>
+
+    <div id="supplierCheckoutModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 420px;">
+            <span class="close-modal" id="closeSupplierCheckoutBtn">&times;</span>
+            <h3>Checkout</h3>
+            <p style="color:#666; font-size:14px;margin-top:0;">Provide procurement details to request supplier items.</p>
+            <form id="supplierCheckoutForm">
+                <div class="form-group">
+                    <label for="procurementName">Requestor Name</label>
+                    <input type="text" id="procurementName" required>
+                </div>
+                <div class="form-group">
+                    <label for="procurementOrganization">Organization</label>
+                    <input type="text" id="procurementOrganization" required>
+                </div>
+                <div class="form-group">
+                    <label for="procurementContact">Contact Phone/Email</label>
+                    <input type="text" id="procurementContact" required>
+                </div>
+                <div class="form-group">
+                    <label for="procurementNotes">Notes</label>
+                    <textarea id="procurementNotes" rows="3" placeholder="Delivery instructions, payment terms, etc."></textarea>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%;">Submit Request</button>
+            </form>
+        </div>
     </div>
 
     <script>
@@ -631,6 +658,60 @@
         // Make functions globally accessible
         window.addToCart = addToCart;
         window.removeFromCart = removeFromCart;
+
+        // Checkout modal logic
+        const supplierCheckoutModal = document.getElementById('supplierCheckoutModal');
+        const closeSupplierCheckoutBtn = document.getElementById('closeSupplierCheckoutBtn');
+        const supplierCheckoutForm = document.getElementById('supplierCheckoutForm');
+
+        const supplierPlaceOrderBtn = document.getElementById('supplierPlaceOrderBtn');
+
+        if (supplierCheckoutModal && supplierCheckoutForm && closeSupplierCheckoutBtn && supplierPlaceOrderBtn) {
+            supplierPlaceOrderBtn.addEventListener('click', () => {
+                if (cart.length === 0) {
+                    alert('Your cart is empty. Add supplier items first.');
+                    return;
+                }
+                supplierCheckoutModal.style.display = 'flex';
+            });
+
+            closeSupplierCheckoutBtn.addEventListener('click', () => {
+                supplierCheckoutModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === supplierCheckoutModal) {
+                    supplierCheckoutModal.style.display = 'none';
+                }
+            });
+
+            supplierCheckoutForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const requestPayload = {
+                    name: document.getElementById('procurementName').value.trim(),
+                    organization: document.getElementById('procurementOrganization').value.trim(),
+                    contact: document.getElementById('procurementContact').value.trim(),
+                    notes: document.getElementById('procurementNotes').value.trim(),
+                    items: cart,
+                    total: cart.reduce((sum, item) => sum + item.price * item.cartQuantity, 0)
+                };
+
+                if (!requestPayload.name || !requestPayload.organization || !requestPayload.contact) {
+                    alert('Please complete all required fields.');
+                    return;
+                }
+
+                alert(`Procurement request submitted!\n\nOrganization: ${requestPayload.organization}\nItems Requested: ${requestPayload.items.length}\nEstimated Total: $${requestPayload.total.toFixed(2)}\n\nOur supplier success team will follow up via ${requestPayload.contact}.`);
+
+                cart = [];
+                saveCart();
+                updateCartDisplay();
+
+                supplierCheckoutForm.reset();
+                supplierCheckoutModal.style.display = 'none';
+            });
+        }
     </script>
 </body>
 </html>

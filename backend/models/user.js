@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-    fullName: {  // Changed from 'username' to match your form
+    fullName: {  
         type: String,
         required: true,
         trim: true
@@ -15,8 +15,19 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: function() {
+            return !this.googleId; // Password required only if not using Google OAuth
+        },
         minlength: 6
+    },
+    googleId: {
+        type: String,
+        sparse: true, 
+        unique: true
+    },
+    profilePicture: {
+        type: String,
+        default: ''
     },
     role: { // Added role field
         type: String,
@@ -25,4 +36,4 @@ const userSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-export default mongoose.model("User", userSchema);
+export default mongoose.models.User || mongoose.model("User", userSchema);

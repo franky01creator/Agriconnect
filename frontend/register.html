@@ -16,8 +16,6 @@
                 <h1>Agriconnect</h1>
             </header>
             <h2 class="form-title">Create Account</h2>
-
-            <!-- Removed default action, added ID -->
             <form id="registerForm">
                 <div class="form-group">
                     <label for="full-name">Full Name</label>
@@ -45,6 +43,25 @@
                 <button type="submit" class="sign-up-btn">Sign Up</button>
             </form>
 
+            <div style="margin: 20px 0; text-align: center; position: relative;">
+                <div style="position: relative; text-align: center;">
+                    <span style="background: white; padding: 0 15px; color: #666; font-size: 14px;">OR</span>
+                    <div style="position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #ddd; z-index: -1;"></div>
+                </div>
+            </div>
+
+            <button type="button" id="googleSignUpBtn" style="width: 100%; padding: 12px; background: #fff; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 16px; transition: all 0.3s;">
+                <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                    <g fill="none" fill-rule="evenodd">
+                        <path d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                        <path d="M9 18c2.43 0 4.467-.806 5.965-2.18l-2.908-2.258c-.806.54-1.837.86-3.057.86-2.35 0-4.34-1.587-5.053-3.72H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/>
+                        <path d="M3.952 10.702c-.18-.54-.282-1.117-.282-1.702s.102-1.162.282-1.702V4.966H.957C.348 6.175 0 7.55 0 9s.348 2.825.957 4.034l2.995-2.332z" fill="#FBBC05"/>
+                        <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.966L3.952 7.3C4.66 5.163 6.65 3.58 9 3.58z" fill="#EA4335"/>
+                    </g>
+                </svg>
+                <span>Sign up with Google</span>
+            </button>
+
             <div class="sign-in-link">
                 <p>Already have an account? <a href="login.html">Sign In</a></p>
             </div>
@@ -53,8 +70,29 @@
 
     <!-- THIS SCRIPT IS THE "LINK" -->
     <script>
+        // API Base URL - Update this to match your backend URL
+        const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5001' 
+            : 'https://agriconnect-lhhe.onrender.com';
+
         const form = document.getElementById('registerForm');
         const errorDiv = document.getElementById('error-message');
+        const googleSignUpBtn = document.getElementById('googleSignUpBtn');
+
+        // Google Sign-Up button handler
+        googleSignUpBtn.addEventListener('click', () => {
+            window.location.href = `${API_BASE_URL}/api/auth/google`;
+        });
+
+        // Style the Google button on hover
+        googleSignUpBtn.addEventListener('mouseenter', () => {
+            googleSignUpBtn.style.background = '#f5f5f5';
+            googleSignUpBtn.style.borderColor = '#ccc';
+        });
+        googleSignUpBtn.addEventListener('mouseleave', () => {
+            googleSignUpBtn.style.background = '#fff';
+            googleSignUpBtn.style.borderColor = '#ddd';
+        });
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault(); 
@@ -68,7 +106,7 @@
 
             try {
                 // THIS IS THE LINK: The full URL to your backend API endpoint
-                const response = await fetch('https://agriconnect-lhhe.onrender.com', {
+                const response = await fetch(`${API_BASE_URL}/api/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

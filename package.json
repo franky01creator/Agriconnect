@@ -8,7 +8,8 @@
     "start": "node backend/server.js",
     "server": "nodemon backend/server.js",
     "client": "live-server frontend/",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "test": "cross-env NODE_ENV=test mocha --timeout 10000 --exit"
   },
   "keywords": [],
   "author": "",

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "build": "echo 'No build step required'"
+    "build": "echo 'No build step required'",
+    "test": "cross-env NODE_ENV=test mocha --timeout 10000 --exit"
   },
   "type": "module",
   "keywords": [],
@@ -14,13 +15,21 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "chai": "^4.3.10",
+    "chai-http": "^4.4.0",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "mongoose": "^7.0.3"
+    "express-session": "^1.18.2",
+    "mongoose": "^7.0.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "cross-env": "^10.1.0",
+    "dotenv": "^17.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "mocha": "^11.7.5",
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.4"
   }
 }

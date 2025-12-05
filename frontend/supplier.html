@@ -37,21 +37,21 @@
                 <div class="metric-icon metric-icon-green"><i class="fas fa-dolly-flatbed"></i></div>
                 <div>
                     <p class="metric-label">Orders to Process</p>
-                    <p class="metric-value" id="ordersCount">12</p>
+                    <p class="metric-value" id="ordersCount">0</p>
                 </div>
             </div>
             <div class="metric-card">
                 <div class="metric-icon metric-icon-blue"><i class="fas fa-boxes"></i></div>
                 <div>
                     <p class="metric-label">Total Products Listed</p>
-                    <p class="metric-value" id="productCount">3</p>
+                    <p class="metric-value" id="productCount">0</p>
                 </div>
             </div>
             <div class="metric-card">
                 <div class="metric-icon metric-icon-orange"><i class="fas fa-chart-line"></i></div>
                 <div>
                     <p class="metric-label">Revenue This Month</p>
-                    <p class="metric-value" id="revenueCount">$15,000</p>
+                    <p class="metric-value" id="revenueCount">$0</p>
                 </div>
             </div>
             <div class="metric-card">
@@ -177,6 +177,11 @@
         let currentUser = null;
         let authToken = null;
 
+        // Base API URL helper (local vs deployed)
+        const API_BASE_URL = window.location.hostname === 'localhost'
+            ? 'http://localhost:5001'
+            : 'https://agriconnect-lhhe.onrender.com';
+
         document.addEventListener('DOMContentLoaded', async () => {
             authToken = localStorage.getItem('authToken');
             const userStr = localStorage.getItem('user');
@@ -251,7 +256,7 @@
             emptyListings.style.display = 'none';
 
             try {
-                const response = await fetch('https://agriconnect-lhhe.onrender.com/api/products/my-listings', {
+                const response = await fetch(`${API_BASE_URL}/api/products/my-listings`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${authToken}`
@@ -272,8 +277,10 @@
                     emptyListings.style.display = 'block';
                 } else {
                     renderSupplierProducts(allSupplierProducts);
-                    updateMetrics(allSupplierProducts);
                 }
+
+                // Always update the metrics, even when there are zero products
+                updateMetrics(allSupplierProducts);
 
             } catch (error) {
                 console.error('Error fetching products:', error);
@@ -320,18 +327,37 @@
 
         // Update metrics based on real data
         function updateMetrics(products) {
+            // Total products = number of listings for this supplier
             // Update product count
             document.getElementById('productCount').textContent = products.length;
 
-            // Calculate revenue (placeholder - would need order data)
-            // For now, we'll estimate based on potential sales
-            const estimatedRevenue = products.reduce((sum, product) => {
-                return sum + (product.price * product.quantity * 0.1); // Assume 10% of stock sold
-            }, 0);
-            document.getElementById('revenueCount').textContent = `$${estimatedRevenue.toFixed(0)}`;
+            // Estimate *this month's* potential revenue using createdAt timestamps.
+            // Since there is no orders API yet, we approximate using products
+            // created in the last 30 days and assume 10% of stock is sold.
+            const now = new Date();
+            const thirtyDaysAgo = new Date(now);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-            // Orders count (placeholder - would need order API)
-            // For now, we'll show a placeholder
+            const monthlyEstimatedRevenue = products.reduce((sum, product) => {
+                // createdAt comes from MongoDB timestamps and is returned as a string
+                const createdAt = product.createdAt ? new Date(product.createdAt) : null;
+
+                if (!createdAt || createdAt < thirtyDaysAgo) {
+                    return sum;
+                }
+
+                const price = typeof product.price === 'number' ? product.price : 0;
+                const quantity = typeof product.quantity === 'number' ? product.quantity : 0;
+
+                // Assume 10% of available stock sells within the month
+                const estimatedSold = quantity * 0.1;
+                return sum + price * estimatedSold;
+            }, 0);
+
+            document.getElementById('revenueCount').textContent = `$${monthlyEstimatedRevenue.toFixed(0)}`;
+
+            // Orders to process – real value would come from an Orders API.
+            // For now, this is set to 0 so it always reflects a dynamic value, not a hardcoded demo number.
             document.getElementById('ordersCount').textContent = '0';
         }
 

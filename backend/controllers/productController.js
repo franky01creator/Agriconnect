@@ -2,10 +2,9 @@ import Product from '../models/product.js';
 
 // @desc    Create a new product
 // @route   POST /api/products
-// @access  Private (Farmers only)
+
 export const createProduct = async (req, res) => {
     try {
-        // 1. Destructure the new fields (imageUrl, certifications) from the body
         const {
             productName,
             category,
@@ -16,9 +15,9 @@ export const createProduct = async (req, res) => {
             minOrder,
             harvestDate,
             expiryDate,
-            imageUrl,       // <--- Added
-            certifications, // <--- Added
-            farmLocation    // <--- Added (in case form sends specific location)
+            imageUrl,       
+            certifications, 
+            farmLocation    
         } = req.body;
 
         // req.user is added by the authMiddleware
@@ -53,7 +52,7 @@ export const createProduct = async (req, res) => {
 
 // @desc    Get products listed by the logged-in farmer
 // @route   GET /api/products/my-listings
-// @access  Private
+
 export const getMyListings = async (req, res) => {
     try {
         // Find listings and SORT by newest first (createdAt: -1)
@@ -68,7 +67,7 @@ export const getMyListings = async (req, res) => {
 
 // @desc    Get all products for the Marketplace
 // @route   GET /api/products
-// @access  Public (or Private depending on your preference)
+
 export const getAllProducts = async (req, res) => {
     try {
         // 1. Find all products
@@ -87,7 +86,7 @@ export const getAllProducts = async (req, res) => {
 
 // @desc    Update a product
 // @route   PUT /api/products/:id
-// @access  Private (Owner only)
+
 export const updateProduct = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id);

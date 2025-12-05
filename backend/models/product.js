@@ -13,7 +13,7 @@ const productSchema = new mongoose.Schema({
         trim: true,
     },
     category: {
-        type: String, // 'fresh-produce', 'vegetables', etc.
+        type: String, 
         required: true,
     },
     description: {
@@ -25,7 +25,7 @@ const productSchema = new mongoose.Schema({
         required: true,
     },
     unit: {
-        type: String, // 'kg', 'piece', 'bushel'
+        type: String, 
         required: true,
     },
     quantity: {
@@ -46,19 +46,11 @@ const productSchema = new mongoose.Schema({
         type: String,
     },
     
-    // --- NEW ADDITIONS ---
-    
-    // 1. Image URL
-    // Even if you aren't doing complex file uploads yet, you need a place
-    // to store the path/URL so the Marketplace can display it.
     imageUrl: {
         type: String,
         default: '', // Default to empty string so it doesn't crash
     },
 
-    // 2. Certifications
-    // Your form has checkboxes. An Array of Strings is the best way to store them.
-    // Example: ['Organic', 'Local']
     certifications: {
         type: [String],
         default: [],
